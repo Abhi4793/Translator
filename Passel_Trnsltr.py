@@ -6,7 +6,14 @@ from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as tkMessageBox
 from PIL import Image
 from PIL import ImageTk
+from googletrans import Translator
+import os
+import pandas as pd
+import numpy as np
+import PyPDF2
+from fpdf import FPDF 
 
+translator = Translator()
 window = Tk()
 
 label_frame = LabelFrame(window, borderwidth=2, width = 10, relief="ridge")
@@ -122,22 +129,66 @@ btn2 = Button(label_frame, image = Chaticon, text ="Chat Translator", borderwidt
 btn2.place(x=140, y=85)
 
 def VideoBrowse():
-    
-    window.files_list = list(filedialog.askopenfilenames(initialdir = "C:\\Users\\Riyaz\\Desktop"))
-    
-    window.SourceText.insert( '1', window.files_list)
-    
-    messagebox.showinfo("Translation in Progress")
 
-btn3 = Button(label_frame, image = Videoicon, text ="Video Translator", borderwidth=1, width=100, height=95, relief="ridge", command = VideoBrowse)
-btn3.place(x=255, y=85)
-
-def DocumentBrowse():
     window.OriginDirectory = list(filedialog.askopenfilenames(initialdir = "C:\\Users\\Riyaz\\Desktop"))
     
     window.SourceText.insert( '1', window.OriginDirectory)
     
     messagebox.showinfo("Translation in Progress")
+        
+    #messagebox.showinfo("Translation in Progress")
+
+btn3 = Button(label_frame, image = Videoicon, text ="Video Translator", borderwidth=1, width=100, height=95, relief="ridge", command = VideoBrowse)
+btn3.place(x=255, y=85)
+
+def DocumentBrowse():
+    filename = filedialog.askopenfilename(initialdir = "C:\\Users\\Riyaz\\Desktop")
+    if os.path.splitext(filename)[1] == ".txt" :
+        file1 = open(filename,"r")
+        text_to_translate = file1.read()
+        file1.close()
+        text_translated = translator.translate(text_to_translate, dest = 'fr')
+
+        file2 = open(os.path.splitext(filename)[0]+"_translated.txt","w")
+        file2.write(text_translated.text)
+        file2.close()
+
+    if os.path.splitext(filename)[1] == ".csv" :
+        df = pd.read_csv (filename)
+        cols_new = []
+        def translate(x):
+            text_to_translate = str(x)
+            text_translated = translator.translate(text_to_translate, dest = 'fr')
+            return text_translated.text
+
+        for cols in np.array(df.columns):
+            df[cols] = df[cols].apply(translate)
+        
+        for i in range(df.shape[1]):
+            cols_new.append(translate(df.columns[i]))
+        df.columns = cols_new
+
+        df.to_csv(os.path.splitext(filename)[0]+"_translated.csv", index=False)
+
+    if os.path.splitext(filename)[1] == ".pdf" :
+        pdfFileObj = open(filename, 'rb')
+        pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
+        file2 = open(os.path.splitext(filename)[0]+"_translated.txt","w")
+        
+        for i in range(pdfReader.numPages):
+            pageObj = pdfReader.getPage(i)
+            text = pageObj.extractText()
+            text = text.replace('e.g.', 'e#g#')
+            if(text.find('http') >= 0):
+                text = text.replace(text[text.find('http'):text.find(' ',text.find('http'))],text[text.find('http'):text.find(' ',text.find('http'))].replace('\n','').replace('.','#'))
+            texts = text.split('.')
+            for t in texts:
+                text_to_translate = t.replace('\n','').replace('#','.').replace('  ','\n').strip() + '.'
+                text_translated = translator.translate(text_to_translate, dest = 'fr')
+                file2.write(text_translated.text)
+            file2.write("\n---------------END OF PAGE--------------\n")
+        file2.close()
+    #messagebox.showinfo("File Saved")
     
 btn4 = Button(label_frame, image = Docicon, text ="File Translator", borderwidth=1, width=100, height=95, relief="ridge", command = DocumentBrowse)
 btn4.place(x=370, y=85)
