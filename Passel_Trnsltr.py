@@ -1,5 +1,6 @@
 
 from tkinter import *
+from tkinter import filedialog
 from tkinter.ttk import Combobox
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as tkMessageBox
@@ -43,14 +44,14 @@ def openNewWindow():
     # c1 = Tk.Checkbutton(newWindow, text='Disability Mode')
     # c1.place(x=15, y=145)
 
-Settings = PhotoImage(file = "C:\\Users\\Abhishek\\Desktop\\Translator\\Settings.png")
-Callicon = PhotoImage(file = "C:\\Users\\Abhishek\\Desktop\\Translator\\Callicon.png")
-Chaticon = PhotoImage(file = "C:\\Users\\Abhishek\\Desktop\\Translator\\Chaticon.png")
-Docicon = PhotoImage(file = "C:\\Users\\Abhishek\\Desktop\\Translator\\Docicon.png")
-Videoicon = PhotoImage(file = "C:\\Users\\Abhishek\\Desktop\\Translator\\Video_icon.png")
-Texticon = PhotoImage(file = "C:\\Users\\Abhishek\\Desktop\\Translator\\Texticon.png")
-Muteicon = PhotoImage(file="C:\\Users\\Abhishek\\Desktop\\Translator\\Muteicon.png")
-Volumeicon = PhotoImage(file="C:\\Users\\Abhishek\\Desktop\\Translator\\Volumeicon.png")
+Settings = PhotoImage(file = "Settings.png")
+Callicon = PhotoImage(file = "Callicon.png")
+Chaticon = PhotoImage(file = "Chaticon.png")
+Docicon = PhotoImage(file = "Docicon.png")
+Videoicon = PhotoImage(file = "Video_icon.png")
+Texticon = PhotoImage(file = "Texticon.png")
+Muteicon = PhotoImage(file="Muteicon.png")
+Volumeicon = PhotoImage(file="Volumeicon.png")
 
 btn = Button(label_frame, image = Settings, text ="Settings", borderwidth=2, width=200, height=45, relief="ridge", command = openNewWindow)
 btn.place(x=35, y=25)
@@ -122,7 +123,7 @@ btn2.place(x=140, y=85)
 
 def VideoBrowse():
     
-    window.files_list = list(filedialog.askopenfilenames(initialdir = "C:\\Users\\Public\\Desktp"))
+    window.files_list = list(filedialog.askopenfilenames(initialdir = "C:\\Users\\Riyaz\\Desktop"))
     
     window.SourceText.insert( '1', window.files_list)
     
@@ -132,9 +133,9 @@ btn3 = Button(label_frame, image = Videoicon, text ="Video Translator", borderwi
 btn3.place(x=255, y=85)
 
 def DocumentBrowse():
-    OriginDirectory = filedialog.askdirectory(initialdir = "C:\\Users\\Public\\Desktp")
+    window.OriginDirectory = list(filedialog.askopenfilenames(initialdir = "C:\\Users\\Riyaz\\Desktop"))
     
-    window.OriginText.insert( '1', OriginDirectory)
+    window.SourceText.insert( '1', window.OriginDirectory)
     
     messagebox.showinfo("Translation in Progress")
     
