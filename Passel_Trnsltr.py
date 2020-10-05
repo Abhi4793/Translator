@@ -17,12 +17,6 @@ from pydub import AudioSegment
 from gtts import gTTS
 
 
-#Translator function 
-def translate():
-    translator= Translator(from_lang=lan1.get(),to_lang=lan2.get())
-    translation = translator.translate(var.get())
-    var1.set(translation)
-
 
 translator = Translator()
 window = Tk()
@@ -224,7 +218,7 @@ def VideoBrowse():
         file.writelines(full_Text)
     doc_trans()
     textToSpeech("textTranslated.txt")
-    combine_audio("TestAudio.mp4","voice.mp3","Merged_out_final.mp4")
+    combine_audio("HBFR_Mandatory_Compliance_Training.mp4","voice.mp3","HBFR_Mandatory_Compliance_Training_FR.mp4")
     messagebox.showinfo("Showinfo","File Saved")
     # window.OriginDirectory = list(filedialog.askopenfilenames(initialdir = "C:\\Users\\Riyaz\\Desktop"))
    
@@ -334,13 +328,24 @@ def TextTranslator():
     var1 = StringVar()
     textbox = Entry(mainframe, textvariable=var1)
     textbox.place( width=200, height=95, x= 290, y= 80)
+
+    #Translator function 
+    def translate():
+        translator= Translator()
+        translation = translator.translate(var.get(), src = lan1.get(),dest = lan2.get())
+        var1.set(translation.text)
     
     #creating a button to call Translator function
     b1=Button(mainframe,text='Translate',command=translate)
     b1.place(x = 226, y = 100)
     
-    b2=Button(mainframe,text='Clear', width = 7)
+    def ClearTextInput():
+        var1.set('')
+        var.set('')
+
+    b2=Button(mainframe,text='Clear',width = 7, command=ClearTextInput)
     b2.place(x = 226, y = 150)
+
 
 btn5 = Button(label_frame, image = Texticon, borderwidth=1, width=100, height=95, relief="ridge",command = TextTranslator)
 btn5.place(x=485, y=85)
