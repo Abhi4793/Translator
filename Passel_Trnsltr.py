@@ -27,11 +27,11 @@ label_frame.pack(expand='yes', fill='both')
 
 var = StringVar()
 var.set("English(Default)")
-data=( "English","German","French","Spanish","Chinese")
-cb=Combobox(window, width=22, height=50, values=data)
-cb.place(x=400,y=35)
+data=( "English(Default)","German","French","Spanish","Chinese")
+cb=Combobox(window, width=22, height=55, values=data)
+cb.place(x=400,y=40)
 
-label1 = Label(window, borderwidth = 2, width = 10, height = 2, relief="ridge", text="Language..")
+label1 = Label(window, text="Language..", borderwidth = 2, width = 10, height = 2 )
 label1.place(x=300, y=30)
 
 def Destinationfolder():
@@ -65,12 +65,10 @@ Texticon = PhotoImage(file = "Texticon.png")
 Muteicon = PhotoImage(file="Muteicon.png")
 Volumeicon = PhotoImage(file="Volumeicon.png")
 
-btn = Button(label_frame, image = Settings, text ="Settings", borderwidth=2, width=200, height=45, relief="ridge", command = openNewWindow)
-btn.place(x=35, y=25)
+btn = Button(label_frame, image = Settings, borderwidth=2, width=200, height=42, relief="ridge", command = openNewWindow)
+btn.place(x=20, y=25)
 
 
-
-   
 def openCallWindow():
        
     CallWindow = Toplevel(window)
@@ -95,7 +93,7 @@ def ConsentWindow():
     label2 = Label(ConsentWindow, text = "This Call will be recorded for further Translation purposes.")
     label2.place(x=15, y=25)
 
-    Continuebutton = Button(ConsentWindow, text ="Continue", borderwidth=1, width=11, height=1, relief="ridge", command=openCallWindow)
+    Continuebutton = Button(ConsentWindow, text ="Continue", borderwidth=1, width=11, height=1, relief="ridge", command = openCallWindow)
     Continuebutton.place(x=170, y=67)
    
     Declinebutton = Button(ConsentWindow, text ="Decline", borderwidth=1, width=11, height=1, relief="ridge", command = ConsentWindow.destroy)
