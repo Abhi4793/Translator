@@ -16,12 +16,18 @@ import speech_recognition as sr
 from pydub import AudioSegment
 from gtts import gTTS
 
-#from fpdf import FPDF
+
+#Translator function 
+def translate():
+    translator= Translator(from_lang=lan1.get(),to_lang=lan2.get())
+    translation = translator.translate(var.get())
+    var1.set(translation)
+
 
 translator = Translator()
 window = Tk()
 
-label_frame = LabelFrame(window, borderwidth=2, width = 10, relief="ridge")
+label_frame = LabelFrame(window,borderwidth=2, relief="ridge")
 label_frame.pack(expand='yes', fill='both')
 
 
@@ -284,7 +290,59 @@ def DocumentBrowse():
 btn4 = Button(label_frame, image = Docicon, text ="File Translator", borderwidth=1, width=100, height=95, relief="ridge", command = DocumentBrowse)
 btn4.place(x=370, y=85)
 
-btn5 = Button(label_frame, image = Texticon, text ="Text Translator", borderwidth=1, width=100, height=95, relief="ridge")
+def TextTranslator():
+    quickTextwindow = Toplevel(window)
+    quickTextwindow.title("Quick Text Translator")
+    quickTextwindow.maxsize(510, 225)
+    quickTextwindow.geometry("510x225")
+    
+    #Creating a Frame and Grid to hold the Content
+    mainframe = Frame(quickTextwindow, borderwidth=2, relief="ridge")
+    mainframe.pack(expand='yes', fill='both')
+    
+    #variables for dropdown list
+    lan1 = StringVar(quickTextwindow)
+    lan2 = StringVar(quickTextwindow)
+    
+    #choices to show in dropdown menu
+    choices = { 'English','French','Hindi','Gujarati','Spanish','German', 'Bengali' }
+    #default selection for dropdownlists
+    lan1.set('English')
+    lan2.set('French')
+    
+    #creating dropdown and arranging in the grid
+    lan1menu = OptionMenu( mainframe, lan1, *choices)
+    lan1menu.place(x = 140, y = 40)
+    Label1 = Label(mainframe,text="Source language")
+    Label1.place( x = 20, y = 45 )
+    
+    
+    lan2menu = OptionMenu( mainframe, lan2, *choices)
+    Label2 = Label(mainframe,text="Target language")
+    lan2menu.place(x= 410, y =40)
+    Label2.place( x = 290, y = 45 )
+    
+    #Text Box to take user input
+    Label(mainframe, text = "Enter text")
+    var = StringVar()
+    textbox = Entry(mainframe, textvariable=var)
+    textbox.place( width=200, height=95, x= 20, y= 80)
+    
+    #textbox to show output
+    #label can also be used
+    Label(mainframe, text = "Output")
+    var1 = StringVar()
+    textbox = Entry(mainframe, textvariable=var1)
+    textbox.place( width=200, height=95, x= 290, y= 80)
+    
+    #creating a button to call Translator function
+    b1=Button(mainframe,text='Translate',command=translate)
+    b1.place(x = 226, y = 100)
+    
+    b2=Button(mainframe,text='Clear', width = 7)
+    b2.place(x = 226, y = 150)
+
+btn5 = Button(label_frame, image = Texticon, borderwidth=1, width=100, height=95, relief="ridge",command = TextTranslator)
 btn5.place(x=485, y=85)
 
 
