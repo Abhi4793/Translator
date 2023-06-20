@@ -1,207 +1,97 @@
-# Translator
-These Projects are developed for Hackademy 2020
+test code
 
-
-import pandas as pd
-
-# Define the path to your Excel file
-excel_file_path = 'path/to/your/file.xlsx'
-
-# Specify the sheet name (if there are multiple sheets)
-sheet_name = 'Sheet1'
-
-# Specify the column name and row index
-column_name = 'ColumnName'
-row_index = 1
-
-# Read the Excel file
-df = pd.read_excel(excel_file_path, sheet_name=sheet_name)
-
-# Access the specific cell value using column name and row index
-cell_value = df.loc[row_index, column_name]
-
-# Print the cell value
-print(cell_value)
-
-
-
-Tkinter
-
-import pandas as pd
 import tkinter as tk
-from tkinter import filedialog, messagebox
-
-def read_excel_row():
-    # Open file dialog to select the Excel file
-    file_path = filedialog.askopenfilename(filetypes=[('Excel Files', '*.xlsx')])
-    
-    # Check if a file was selected
-    if file_path:
-        try:
-            # Specify the sheet name (if there are multiple sheets)
-            sheet_name = 'Sheet1'
-
-            # Specify the column name and row index
-            column_name = 'ColumnName'
-            row_index = 1
-
-            # Read the Excel file
-            df = pd.read_excel(file_path, sheet_name=sheet_name)
-
-            # Access the specific cell value using column name and row index
-            cell_value = df.loc[row_index, column_name]
-
-            # Show the cell value in a message box
-            messagebox.showinfo("Cell Value", f"The cell value is: {cell_value}")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-
-# Create the Tkinter window
-window = tk.Tk()
-window.title("Excel Reader")
-
-# Create a button to trigger the Excel reading
-button = tk.Button(window, text="Read Excel", command=read_excel_row)
-button.pack(pady=20)
-
-# Run the Tkinter event loop
-window.mainloop()
-
-
-Output with a csv file using tkinter
-
+from tkinter import filedialog
 import pandas as pd
-import tkinter as tk
-from tkinter import filedialog, messagebox
+import os
 
-def read_excel_row():
-    # Open file dialog to select the Excel file
-    file_path = filedialog.askopenfilename(filetypes=[('Excel Files', '*.xlsx')])
+# Function to derive the quarter from the month
+def derive_quarter(month):
+    if month in ['Jan', 'Feb', 'Mar']:
+        return 'Q1'
+    elif month in ['Apr', 'May', 'Jun']:
+        return 'Q2'
+    elif month in ['Jul', 'Aug', 'Sep']:
+        return 'Q3'
+    elif month in ['Oct', 'Nov', 'Dec']:
+        return 'Q4'
+    else:
+        return ''
+
+# Function to handle button click and process the data
+def process_data():
+    # Get the selected file paths
+    input_file_path = input_entry.get()
+    output_file_path = output_entry.get()
     
-    # Check if a file was selected
-    if file_path:
-        try:
-            # Specify the sheet name (if there are multiple sheets)
-            sheet_name = 'Sheet1'
+    # Extract the location from the input file name
+    file_name = os.path.basename(input_file_path)
+    if 'pune' in file_name.lower():
+        location = 'HTI_Pune'
+    elif 'hyd' in file_name.lower():
+        location = 'HTI_Hyd'
+    else:
+        location = 'Unknown'
 
-            # Specify the column name and row index
-            column_name = 'ColumnName'
-            row_index = 1
+    # Define the tab names
+    tab_names = ['electricity', 'PPA', 'Diesel']
 
-            # Read the Excel file
-            df = pd.read_excel(file_path, sheet_name=sheet_name)
+    # Read the data from the input file
+    data = {}
+    for tab_name in tab_names:
+        data[tab_name] = pd.read_excel(input_file_path, sheet_name=tab_name)
 
-            # Access the specific cell value using column name and row index
-            cell_value = df.loc[row_index, column_name]
+    # Create an empty DataFrame for the output
+    output_data = pd.DataFrame(columns=['Category', 'Type', 'Year', 'Quarter', 'Amount', 'Unit', 'Location'])
 
-            # Save the extracted data to a new Excel file
-            output_file_path = filedialog.asksaveasfilename(defaultextension='.xlsx',
-                                                            filetypes=[('Excel Files', '*.xlsx')])
-            if output_file_path:
-                df_extracted = pd.DataFrame({'Cell Value': [cell_value]})
-                df_extracted.to_excel(output_file_path, index=False)
-                messagebox.showinfo("Success", "Data saved successfully!")
-            else:
-                messagebox.showinfo("Info", "No output file selected.")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+    # Process the data for each tab
+    for tab_name, df in data.items():
+        # Determine the quarter from the column names
+        quarters = [derive_quarter(col) for col in df.columns if col != 'office']
 
-# Create the Tkinter window
+        # Iterate over the quarters and read the corresponding values
+        for quarter in quarters:
+            # Extract the year from the quarter column name
+            year = quarter.split()[1]
+
+            # Read the values from specific cells
+            electricity = df.loc[13, 'office']
+            solar = df.loc[13, 'office.1']
+            diesel = df.loc[13, 'office.2']
+
+            # Append the data to the output DataFrame
+            output_data = output_data.append({
+                'Category': 'Energy',
+                'Type': tab_name,
+                'Year': int(year),
+                'Quarter': quarter,
+                'Amount': electricity if tab_name == 'electricity' else solar if tab_name == 'PPA' else diesel,
+                'Unit': 'kWh',
+                'Location': location
+            }, ignore_index=True)
+
+    # Write the output data to the output file
+    output_data.to_excel(output_file_path, index=False)
+    output_label.config(text="Output file generated successfully!")
+
+# Create the main window
 window = tk.Tk()
-window.title("Excel Reader")
+window.title("Excel Data Processor")
 
-# Create a button to trigger the Excel reading
-button = tk.Button(window, text="Read Excel", command=read_excel_row)
-button.pack(pady=20)
+# Create and position the input file path label and entry
+input_label = tk.Label(window, text="Input File:")
+input_label.pack()
+input_entry = tk.Entry(window, width=50)
+input_entry.pack()
 
-# Run the Tkinter event loop
-window.mainloop()
+# Create and position the input file path browse button
+def browse_input_file():
+    file_path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
+    input_entry.delete(0, tk.END)
+    input_entry.insert(0, file_path)
 
+input_button = tk.Button(window, text="Browse", command=browse_input_file)
+input_button.pack()
 
-
-
-
-
-
-
-
-
-
-
-
-openpyxl
-
-import openpyxl
-from tkinter import Tk, filedialog, messagebox
-
-def read_excel_files():
-    # Open file dialog to select multiple Excel files
-    file_paths = filedialog.askopenfilenames(filetypes=[('Excel Files', '*.xlsx')])
-    
-    # Check if files were selected
-    if file_paths:
-        try:
-            # Specify the sheet name (if there are multiple sheets)
-            sheet_name = 'Sheet1'
-
-            # Specify the column names and row index
-            column_names = ['Column1', 'Column2', 'Column3']
-            row_index = 1
-
-            # Create an empty list to store extracted values
-            extracted_values = []
-
-            # Read each Excel file and extract the specified cell values
-            for file_path in file_paths:
-                workbook = openpyxl.load_workbook(file_path, read_only=True)
-                
-                # Check if the input sheet name contains 'pune' or 'Pune'
-                sheet_names = workbook.sheetnames
-                target_sheet = None
-                for name in sheet_names:
-                    if 'pune' in name.lower() or 'Pune' in name:
-                        target_sheet = workbook[name]
-                        break
-                
-                if target_sheet:
-                    cell_values = [target_sheet.cell(row=row_index, column=target_sheet.cell(row=row_index, column=1).column + i).value
-                                   for i, column_name in enumerate(column_names)]
-                    extracted_values.append(cell_values)
-
-            # Create a new Excel workbook
-            output_workbook = openpyxl.Workbook()
-            output_worksheet = output_workbook.active
-
-            # Write the extracted values to the output worksheet
-            for row_index, cell_values in enumerate(extracted_values, start=row_index):
-                for col_index, cell_value in enumerate(cell_values):
-                    output_worksheet.cell(row=row_index, column=col_index+1, value=cell_value)
-                
-                # Check the input sheet name and append 'Pune' or 'Hyd' to the output file name
-                input_sheet_name = sheet_names[row_index - 1]
-                output_file_path = filedialog.asksaveasfilename(defaultextension='.xlsx',
-                                                                filetypes=[('Excel Files', '*.xlsx')])
-
-                if output_file_path:
-                    if 'pune' in input_sheet_name.lower() or 'Pune' in input_sheet_name:
-                        output_file_path = output_file_path[:-5] + "_Pune.xlsx"  # Append '_Pune' to the output file name
-                    elif 'hyd' in input_sheet_name.lower() or 'Hyd' in input_sheet_name or 'Hyderabad' in input_sheet_name:
-                        output_file_path = output_file_path[:-5] + "_Hyd.xlsx"  # Append '_Hyd' to the output file name
-
-                    output_workbook.save(output_file_path)
-                    messagebox.showinfo("Success", "Data saved successfully!")
-                else:
-                    messagebox.showinfo("Info", "No output file selected.")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-
-# Create the Tkinter window
-window = Tk()
-window.title("Excel Reader")
-
-# Create a button to trigger the Excel reading
-button = Button(window, text="Read Excel Files", command=read_excel_files)
-button.pack(pady=20)
-
-# Run the Tkinter event loop
-window.mainloop()
+# Create and position the output file path label and entry
+output
