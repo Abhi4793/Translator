@@ -95,3 +95,78 @@ input_button.pack()
 
 # Create and position the output file path label and entry
 output
+
+
+
+import tkinter as tk
+from tkinter import filedialog
+import xlwings as xw
+import os
+
+# Function to derive the quarter from the month
+def derive_quarter(month):
+    # ... (same as before)
+
+# Function to handle button click and process the data
+def process_data():
+    # Get the selected file paths
+    input_file_path = input_entry.get()
+    output_file_path = output_entry.get()
+
+    # Extract the location from the input file name
+    file_name = os.path.basename(input_file_path)
+    if 'pune' in file_name.lower():
+        location = 'HTI_Pune'
+    elif 'hyd' in file_name.lower():
+        location = 'HTI_Hyd'
+    else:
+        location = 'Unknown'
+
+    # Define the tab names
+    tab_names = ['electricity', 'PPA', 'Diesel']
+
+    # Create an empty DataFrame for the output
+    output_data = pd.DataFrame(columns=['Category', 'Type', 'Year', 'Quarter', 'Amount', 'Unit', 'Location'])
+
+    # Process the data for each tab
+    for tab_name in tab_names:
+        # Open the workbook using xlwings
+        workbook = xw.Book(input_file_path)
+
+        try:
+            # Select the worksheet
+            worksheet = workbook.sheets[tab_name]
+
+            # Determine the quarter from the column names
+            quarters = [derive_quarter(col) for col in worksheet.range('A1').expand('right').value if col != 'office']
+
+            # Iterate over the quarters and read the corresponding values
+            for quarter in quarters:
+                # Extract the year from the quarter column name
+                year = quarter.split()[1]
+
+                # Read the values from specific cells
+                electricity = worksheet.range('B13').value
+                solar = worksheet.range('C13').value
+                diesel = worksheet.range('D13').value
+
+                # Append the data to the output DataFrame
+                output_data = output_data.append({
+                    'Category': 'Energy',
+                    'Type': tab_name,
+                    'Year': int(year),
+                    'Quarter': quarter,
+                    'Amount': electricity if tab_name == 'electricity' else solar if tab_name == 'PPA' else diesel,
+                    'Unit': 'kWh',
+                    'Location': location
+                }, ignore_index=True)
+
+        finally:
+            # Close the workbook
+            workbook.close()
+
+    # Write the output data to the output file
+    output_data.to_excel(output_file_path, index=False)
+    output_label.config(text="Output file generated successfully!")
+
+# ... (same as before)
