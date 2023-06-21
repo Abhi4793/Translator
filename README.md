@@ -1,172 +1,133 @@
-test code
-
-import tkinter as tk
-from tkinter import filedialog
-import pandas as pd
-import os
-
-# Function to derive the quarter from the month
-def derive_quarter(month):
-    if month in ['Jan', 'Feb', 'Mar']:
-        return 'Q1'
-    elif month in ['Apr', 'May', 'Jun']:
-        return 'Q2'
-    elif month in ['Jul', 'Aug', 'Sep']:
-        return 'Q3'
-    elif month in ['Oct', 'Nov', 'Dec']:
-        return 'Q4'
-    else:
-        return ''
-
-# Function to handle button click and process the data
-def process_data():
-    # Get the selected file paths
-    input_file_path = input_entry.get()
-    output_file_path = output_entry.get()
-    
-    # Extract the location from the input file name
-    file_name = os.path.basename(input_file_path)
-    if 'pune' in file_name.lower():
-        location = 'HTI_Pune'
-    elif 'hyd' in file_name.lower():
-        location = 'HTI_Hyd'
-    else:
-        location = 'Unknown'
-
-    # Define the tab names
-    tab_names = ['electricity', 'PPA', 'Diesel']
-
-    # Read the data from the input file
-    data = {}
-    for tab_name in tab_names:
-        data[tab_name] = pd.read_excel(input_file_path, sheet_name=tab_name)
-
-    # Create an empty DataFrame for the output
-    output_data = pd.DataFrame(columns=['Category', 'Type', 'Year', 'Quarter', 'Amount', 'Unit', 'Location'])
-
-    # Process the data for each tab
-    for tab_name, df in data.items():
-        # Determine the quarter from the column names
-        quarters = [derive_quarter(col) for col in df.columns if col != 'office']
-
-        # Iterate over the quarters and read the corresponding values
-        for quarter in quarters:
-            # Extract the year from the quarter column name
-            year = quarter.split()[1]
-
-            # Read the values from specific cells
-            electricity = df.loc[13, 'office']
-            solar = df.loc[13, 'office.1']
-            diesel = df.loc[13, 'office.2']
-
-            # Append the data to the output DataFrame
-            output_data = output_data.append({
-                'Category': 'Energy',
-                'Type': tab_name,
-                'Year': int(year),
-                'Quarter': quarter,
-                'Amount': electricity if tab_name == 'electricity' else solar if tab_name == 'PPA' else diesel,
-                'Unit': 'kWh',
-                'Location': location
-            }, ignore_index=True)
-
-    # Write the output data to the output file
-    output_data.to_excel(output_file_path, index=False)
-    output_label.config(text="Output file generated successfully!")
-
-# Create the main window
-window = tk.Tk()
-window.title("Excel Data Processor")
-
-# Create and position the input file path label and entry
-input_label = tk.Label(window, text="Input File:")
-input_label.pack()
-input_entry = tk.Entry(window, width=50)
-input_entry.pack()
-
-# Create and position the input file path browse button
-def browse_input_file():
-    file_path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
-    input_entry.delete(0, tk.END)
-    input_entry.insert(0, file_path)
-
-input_button = tk.Button(window, text="Browse", command=browse_input_file)
-input_button.pack()
-
-# Create and position the output file path label and entry
-output
-
-
-
 import tkinter as tk
 from tkinter import filedialog
 import xlwings as xw
-import os
 
-# Function to derive the quarter from the month
-def derive_quarter(month):
-    # ... (same as before)
+# Function to process the input file and generate the output file
+def process_file():
+    # Prompt the user to select the input file
+    file_path = filedialog.askopenfilename(filetypes=[('Excel Files', '*.xlsx')])
 
-# Function to handle button click and process the data
-def process_data():
-    # Get the selected file paths
-    input_file_path = input_entry.get()
-    output_file_path = output_entry.get()
+    # Check if a file was selected
+    if file_path:
+        # Open the source Excel file
+        source_workbook = xw.Book(file_path)
 
-    # Extract the location from the input file name
-    file_name = os.path.basename(input_file_path)
-    if 'pune' in file_name.lower():
-        location = 'HTI_Pune'
-    elif 'hyd' in file_name.lower():
-        location = 'HTI_Hyd'
-    else:
-        location = 'Unknown'
+        # Select the sheet names you want to read from
+        sheet_names = ['sheet1', 'sheet2', 'sheet3']
 
-    # Define the tab names
-    tab_names = ['electricity', 'PPA', 'Diesel']
+        # Define a dictionary to store the cell values, category, metrics, location, and quarter for each sheet
+        sheet_data = {}
 
-    # Create an empty DataFrame for the output
-    output_data = pd.DataFrame(columns=['Category', 'Type', 'Year', 'Quarter', 'Amount', 'Unit', 'Location'])
+        # Determine the location based on the input file name
+        if 'Pune' in file_path:
+            location = 'HTI-Pune'
+        elif 'Hyd' in file_path:
+            location = 'HTI-Hyderabad'
+        else:
+            location = None
 
-    # Process the data for each tab
-    for tab_name in tab_names:
-        # Open the workbook using xlwings
-        workbook = xw.Book(input_file_path)
+        # Iterate over the selected sheet names
+        for sheet_name in sheet_names:
+            # Select the sheet from the source workbook
+            source_sheet = source_workbook.sheets[sheet_name]
 
-        try:
-            # Select the worksheet
-            worksheet = workbook.sheets[tab_name]
+            # Define the cell ranges for the desired values
+            cell_ranges = [
+                (13, 17),  # Cell value 1
+                (14, 17),  # Cell value 2
+                (15, 17),  # Cell value 3
+                # Add more cell ranges as needed
+            ]
 
-            # Determine the quarter from the column names
-            quarters = [derive_quarter(col) for col in worksheet.range('A1').expand('right').value if col != 'office']
+            # Read the cell values
+            cell_values = [source_sheet.range(row, col).value for row, col in cell_ranges]
 
-            # Iterate over the quarters and read the corresponding values
-            for quarter in quarters:
-                # Extract the year from the quarter column name
-                year = quarter.split()[1]
+            # Define the row index and column index for the quarter
+            quarter_row_index = 10
+            quarter_column_index = 54
 
-                # Read the values from specific cells
-                electricity = worksheet.range('B13').value
-                solar = worksheet.range('C13').value
-                diesel = worksheet.range('D13').value
+            # Read the quarter value
+            quarter_value = source_sheet.range(quarter_row_index, quarter_column_index).value
 
-                # Append the data to the output DataFrame
-                output_data = output_data.append({
-                    'Category': 'Energy',
-                    'Type': tab_name,
-                    'Year': int(year),
-                    'Quarter': quarter,
-                    'Amount': electricity if tab_name == 'electricity' else solar if tab_name == 'PPA' else diesel,
-                    'Unit': 'kWh',
-                    'Location': location
-                }, ignore_index=True)
+            # Determine the category based on the sheet name
+            category = 'Energy' if sheet_name in ['Electricity1', 'PPA', 'Diesel'] else None
 
-        finally:
-            # Close the workbook
-            workbook.close()
+            # Determine the metrics based on the sheet name
+            if sheet_name == 'Diesel':
+                metrics = 'Generator Diesel [kWh]'
+            elif sheet_name == 'PPA':
+                metrics = 'PPA-Solar [kWh]'
+            elif sheet_name == 'Electricity1':
+                metrics = 'Total Electricity (purchased) [kWh]'
+            else:
+                metrics = None
 
-    # Write the output data to the output file
-    output_data.to_excel(output_file_path, index=False)
-    output_label.config(text="Output file generated successfully!")
+            # Store the cell values, category, metrics, location, and quarter in the dictionary
+            sheet_data[sheet_name] = {'cell_values': cell_values, 'category': category, 'metrics': metrics, 'location': location, 'quarter': quarter_value}
 
-# ... (same as before)
+        # Create a new workbook to write the cell values
+        output_file_path = filedialog.asksaveasfilename(filetypes=[('Excel Files', '*.xlsx')])
+
+        if output_file_path:
+            # Check if the output file already exists
+            if xw.Book(output_file_path).sheets:
+                # Open the existing output file
+                output_workbook = xw.Book(output_file_path)
+            else:
+                # Create a new output file
+                output_workbook = xw.Book()
+            
+            # Select the first sheet in the output workbook
+            output_sheet = output_workbook.sheets[0]
+
+            # Find the next available row in the output sheet
+            row = output_sheet.range((output_sheet.cells.last_cell.row, 1)).end('up').
+
+            # Find the next available row in the output sheet
+            row = output_sheet.range((output_sheet.cells.last_cell.row, 1)).end('up').row + 1
+
+            # Write the cell values, category, metrics, location, quarter, and unit to the output sheet
+            output_sheet.range(f'A{row}').value = 'Sheet Name'
+            output_sheet.range(f'B{row}').value = 'Cell Value 1'
+            output_sheet.range(f'C{row}').value = 'Cell Value 2'
+            output_sheet.range(f'D{row}').value = 'Cell Value 3'
+            output_sheet.range(f'E{row}').value = 'Category'
+            output_sheet.range(f'F{row}').value = 'Metrics'
+            output_sheet.range(f'G{row}').value = 'Location'
+            output_sheet.range(f'H{row}').value = 'Quarter'
+            output_sheet.range(f'I{row}').value = 'Unit'
+
+            # Write the data to the output sheet
+            for sheet_name, data in sheet_data.items():
+                output_sheet.range(f'A{row}').offset(column_offset=1).value = sheet_name
+                output_sheet.range(f'B{row}').offset(column_offset=1).value = data['cell_values'][0]
+                output_sheet.range(f'C{row}').offset(column_offset=1).value = data['cell_values'][1]
+                output_sheet.range(f'D{row}').offset(column_offset=1).value = data['cell_values'][2]
+                output_sheet.range(f'E{row}').offset(column_offset=1).value = data['category']
+                output_sheet.range(f'F{row}').offset(column_offset=1).value = data['metrics']
+                output_sheet.range(f'G{row}').offset(column_offset=1).value = data['location']
+                output_sheet.range(f'H{row}').offset(column_offset=1).value = data['quarter']
+                output_sheet.range(f'I{row}').offset(column_offset=1).value = 'kWh'
+                row += 1
+
+            # Save the output workbook
+            output_workbook.save(output_file_path)
+            output_workbook.close()
+
+            # Close the source workbook
+            source_workbook.close()
+
+            print("Output file generated successfully!")
+        else:
+            print("No output file selected.")
+
+
+# Create a Tkinter root window
+root = tk.Tk()
+
+# Create a button to trigger the file selection and processing
+button = tk.Button(root, text="Select and Process File", command=process_file)
+button.pack()
+
+# Run the Tkinter event loop
+root.mainloop()
