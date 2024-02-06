@@ -1,0 +1,124 @@
+Promtail Config
+
+server:
+  log_level: info
+  http_listen_port: 3101
+  grpc_listen_port: 0
+
+clients:
+  - url: https://__LOKI_DNS_/loki/api/v1/push
+
+positions:
+  filename: /home/ubuntu/MyDir/opt/promtail/positions.yaml
+
+scrape_configs:
+  - job_name: ec2-logs
+    ec2_sd_configs:
+      - region: ap-south-1
+        access_key: Harbinger@23
+        secret_key: REDACTED
+    relabel_configs:
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance
+        action: replace
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: zone
+        action: replace
+      - action: replace
+        replacement: /app/logs/**.log
+        target_label: __path__
+      - source_labels: [__meta_ec2_private_dns_name]
+        regex: "(.*)"
+        target_label: __host__
+
+Loki Config
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  path_prefix: /etc/loki
+  storage:
+    filesystem:
+      chunks_directory: /etc/loki/chunks
+      rules_directory: /etc/loki/rules
+  replication_factor: 1
+  ring:
+    instance_addr: localhost
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2023-09-11
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+ruler:
+  alertmanager_url: http://localhost:9093
+
+
+
+
+
+Alternate config
+
+promtail-config.yaml
+
+server:
+  http_listen_port: 3101
+  grpc_listen_port: 0
+
+positions:
+  filename: /home/ubuntu/MyDir/opt/promtail/positions.yaml
+
+clients:
+  - url: http://13.235.239.42:3100/loki/api/v1/push
+
+scrape_configs:
+- job_name: system
+  static_configs:
+  - targets:
+      - 13.235.239.42
+    labels:
+      job: varlogs
+      __path__: /app/logs/*log
+
+Loki-config.yaml
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 0
+
+common:
+  path_prefix: /tmp/loki
+  storage:
+    filesystem:
+      chunks_directory: /tmp/loki/chunks
+      rules_directory: /tmp/loki/rules
+  replication_factor: 1
+  ring:
+    instance_addr: 127.0.0.1	
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2023-09-11
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+ruler:
+  alertmanager_url: http://localhost:9093
