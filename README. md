@@ -1,0 +1,28 @@
+graph LR
+    subgraph "API & Ingestion Layer"
+        API[AsyncApiController] --> Service[AsyncApiService]
+        Service --> DB[(EventRepository - JPA)]
+    end
+
+    subgraph "Search & Observability"
+        Service --> OS_Svc[OpenSearchService]
+        OS_Svc --> OS_Cluster[(OpenSearch Cluster)]
+    end
+
+    subgraph "Event Backbone (Kafka)"
+        Service --> K_Prod[KafkaProducerService]
+        K_Prod --> Kafka[(Kafka Cluster)]
+        Kafka --> K_Cons[KafkaConsumerService]
+    end
+
+    subgraph "External Integration & Governance"
+        K_Cons --> Schema[Schema Registry / Apicurio]
+        K_Cons --> Vault[Secret Management]
+        K_Cons --> Adapter[IbmMqAdapter - JMS]
+        Adapter --> IBMMQ[(IBM MQ)]
+    end
+
+    %% Styling
+    style Kafka fill:#232f3e,color:#fff
+    style OS_Cluster fill:#005a9e,color:#fff
+    style IBMMQ fill:#4d5d6c,color:#fff
